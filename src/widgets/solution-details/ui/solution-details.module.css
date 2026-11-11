@@ -1,0 +1,10 @@
+.head { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
+.cover { aspect-ratio: 4 / 3; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: #fff; }
+.coverImage { width: 100%; height: 100%; object-fit: cover; }
+.meta { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: var(--clay); }
+.title { font-size: 36px; line-height: 1.12; margin-bottom: 16px; }
+.description { margin: 0 0 24px; max-width: 460px; color: var(--ink-soft); }
+.price { margin: 0 0 4px; font: 500 30px var(--font-serif); }
+.note { margin: 0 0 24px; font-size: 14px; color: var(--sage-deep); }
+.listTitle { font-size: 28px; margin: 64px 0 24px; }
+@media (max-width: 860px) { .head { grid-template-columns: 1fr; gap: 28px; } .title { font-size: 30px; } }

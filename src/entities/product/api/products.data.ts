@@ -1,0 +1,73 @@
+import type { Product } from '../model/types';
+
+/**
+ * ТЕСТОВЫЕ данные для макета. Цены, сроки и связи придуманы.
+ * Реальны только размеры диванa и стола (переведены из дюймов).
+ * Позже заменяются данными из таблицы товаров (см. products.api.ts).
+ */
+export const PRODUCTS: readonly Product[] = [
+  {
+    id: 'KM-001',
+    name: 'Диван 3-местный, оливковый',
+    room: 'living',
+    kind: 'Диван',
+    style: 'modern-classic',
+    color: 'Оливково-зелёный',
+    material: 'Ткань, массив дерева',
+    dimensions: { width: 213, depth: 104, height: 81 },
+    price: 185000,
+    availability: 'showroom',
+    leadTimeDays: null,
+    description: 'Глубокая посадка, две подушки, точёные ножки, отделка гвоздиками по цоколю.',
+    images: ['/products/KM-001_main.jpg'],
+    relatedIds: ['KM-003', 'KM-004'],
+  },
+  {
+    id: 'KM-002',
+    name: 'Обеденный стол с точёными ножками',
+    room: 'dining',
+    kind: 'Обеденный стол',
+    style: 'french-country',
+    color: 'Серо-голубой, натуральная столешница',
+    material: 'Массив дерева',
+    dimensions: { width: 221, depth: 91, height: 79 },
+    price: 120000,
+    availability: 'on-order',
+    leadTimeDays: 45,
+    description: 'Столешница из натурального дерева, патинированное основание с точёными ножками.',
+    images: ['/products/KM-002_main.jpg'],
+    relatedIds: ['KM-004'],
+  },
+  {
+    id: 'KM-003',
+    name: 'Комод на три ящика, серый',
+    room: 'bedroom',
+    kind: 'Комод',
+    style: 'provence',
+    color: 'Серо-графитовый',
+    material: 'Массив дерева',
+    dimensions: { width: 120, depth: 55, height: 85 },
+    price: 98000,
+    availability: 'in-stock',
+    leadTimeDays: null,
+    description: 'Три ящика с латунными ручками, фигурный нижний декор, изогнутые ножки.',
+    images: ['/products/KM-003_room.jpg'],
+    relatedIds: ['KM-001'],
+  },
+  {
+    id: 'KM-004',
+    name: 'Буфет из светлого дерева',
+    room: 'dining',
+    kind: 'Буфет',
+    style: 'provence',
+    color: 'Натуральное дерево',
+    material: 'Массив дерева',
+    dimensions: { width: 200, depth: 50, height: 90 },
+    price: 135000,
+    availability: 'showroom',
+    leadTimeDays: null,
+    description: 'Четыре двери с фигурными филёнками, три центральных ящика, кованые ручки.',
+    images: ['/products/KM-004_room.jpg'],
+    relatedIds: ['KM-002', 'KM-001'],
+  },
+];

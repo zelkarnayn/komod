@@ -1,0 +1,7 @@
+.header { position: sticky; top: 0; z-index: 20; padding-top: env(safe-area-inset-top, 0px); background: rgba(247, 242, 234, 0.94); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-top: 16px; padding-bottom: 16px; }
+.logo { font: 600 24px var(--font-serif); text-decoration: none; }
+.nav { display: flex; gap: 28px; font-size: 15px; }
+.nav a { text-decoration: none; opacity: 0.8; }
+.nav a:hover { opacity: 1; }
+@media (max-width: 860px) { .nav { display: none; } }

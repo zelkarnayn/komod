@@ -1,0 +1,6 @@
+.state { color: var(--ink-soft); }
+.empty { padding: 40px 0; }
+.emptyTitle { font-size: 22px; margin-bottom: 8px; }
+.emptyText { margin: 0 0 20px; color: var(--ink-soft); }
+.emptyActions { display: flex; flex-wrap: wrap; gap: 12px; }
+.count { margin: 0 0 20px; font-size: 14px; color: var(--ink-soft); }

@@ -1,0 +1,7 @@
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+.photo { aspect-ratio: 1 / 1; border-radius: 4px; background: linear-gradient(200deg, #c9b48c, #93835e); }
+.title { font-size: 30px; margin-bottom: 16px; }
+.text { margin: 0 0 24px; color: var(--ink-soft); }
+.meta { display: flex; gap: 32px; margin-top: 28px; font-size: 14px; }
+.meta strong { display: block; font: 500 17px var(--font-serif); }
+@media (max-width: 860px) { .grid { grid-template-columns: 1fr; gap: 32px; } }
