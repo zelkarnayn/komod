@@ -2,7 +2,7 @@ import { SITE } from '@/shared/config';
 import { ButtonLink, Section } from '@/shared/ui';
 import styles from './showroom-info.module.css';
 
-/** Блок про шоурум. TODO: добавить фото зала и ссылку на карту. */
+/** Блок про шоурум. TODO: добавить фото зала. */
 export function ShowroomInfo() {
   return (
     <Section id="showroom">
@@ -18,7 +18,7 @@ export function ShowroomInfo() {
           </ButtonLink>
           <div className={styles.meta}>
             <div>
-              <strong>{SITE.city}</strong>
+              <strong>Адрес</strong>
               {SITE.addressText}
             </div>
             <div>

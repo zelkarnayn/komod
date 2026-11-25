@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useProduct } from '@/entities/product';
 import { ROUTES } from '@/shared/config';
+import { usePageTitle } from '@/shared/lib';
 import { Container } from '@/shared/ui';
 import { ProductDetails } from '@/widgets/product-details';
 import { RelatedProducts } from '@/widgets/related-products';
@@ -10,6 +11,7 @@ import styles from './product-page.module.css';
 export function ProductPage() {
   const { productId } = useParams();
   const { data: product, isPending } = useProduct(productId);
+  usePageTitle(product?.name ?? (isPending ? undefined : 'Товар не найден'));
 
   if (isPending) {
     return <Container className={styles.state}>Загружаем товар…</Container>;

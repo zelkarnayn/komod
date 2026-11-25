@@ -2,5 +2,12 @@
 .title { font-size: 30px; margin-bottom: 20px; }
 .row { margin-bottom: 16px; font-size: 15px; }
 .row strong { display: block; font: 500 16px var(--font-serif); }
-.map { aspect-ratio: 16 / 11; display: flex; align-items: center; justify-content: center; border-radius: 4px; color: var(--ink-soft); font-size: 14px; background: repeating-linear-gradient(45deg, #e3d9c3, #e3d9c3 12px, #dad0b8 12px, #dad0b8 24px); }
-@media (max-width: 860px) { .grid { grid-template-columns: 1fr; gap: 32px; } }
+.orgLink { display: block; margin-top: 4px; color: var(--sage-deep); font-size: 14px; }
+.map { display: block; width: 100%; aspect-ratio: 16 / 11; border: 0; border-radius: 4px; background: var(--line); }
+.routes { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; }
+.routesLabel { font-size: 14px; color: var(--ink-soft); }
+@media (max-width: 860px) {
+  .grid { grid-template-columns: 1fr; gap: 32px; }
+  .map { aspect-ratio: 4 / 3; }
+  .routesLabel { flex-basis: 100%; }
+}
