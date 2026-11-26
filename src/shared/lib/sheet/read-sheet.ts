@@ -152,12 +152,13 @@ function createRowReader<C extends string>(cell: (column: C) => string): RowRead
 }
 
 /**
- * В режиме разработки выводит в консоль, какие строки таблицы пропущены и почему.
- * В боевой сборке молчит.
+ * Выводит в консоль, какие строки таблицы пропущены и почему: при разработке и при пререндере.
+ * В браузере у посетителей молчит.
  * @param issues - причины пропуска из readSheet
  */
 export function warnSheetIssues(issues: readonly SheetIssue[]): void {
-  if (!import.meta.env.DEV || issues.length === 0) return;
+  // В браузере — только при разработке, при сборке — всегда: так ошибки таблицы видны в логе сборки
+  if ((!import.meta.env.DEV && !import.meta.env.SSR) || issues.length === 0) return;
   const lines = issues.map((issue) => `  «${issue.sheet}», строка ${issue.row}: ${issue.message}`);
   console.warn(`Таблица: пропущено строк — ${issues.length}\n${lines.join('\n')}`);
 }

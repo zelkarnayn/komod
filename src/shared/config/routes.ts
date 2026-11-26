@@ -1,10 +1,13 @@
-/** Все маршруты приложения в одном месте, чтобы не разбрасывать строки по коду. */
+/**
+ * Все маршруты приложения в одном месте, чтобы не разбрасывать строки по коду.
+ * Адреса страниц заканчиваются на «/»: каждая страница лежит на хостинге как папка с index.html.
+ */
 export const ROUTES = {
   home: '/',
-  catalog: '/catalog',
-  product: (id: string) => `/catalog/${id}`,
-  solutions: '/solutions',
-  solution: (id: string) => `/solutions/${id}`,
+  catalog: '/catalog/',
+  product: (id: string) => `/catalog/${id}/`,
+  solutions: '/solutions/',
+  solution: (id: string) => `/solutions/${id}/`,
   /** Якоря блоков главной страницы */
   showroom: '/#showroom',
   services: '/#services',

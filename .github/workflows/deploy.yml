@@ -1,0 +1,86 @@
+# Сборка сайта и выкладка в Yandex Object Storage.
+# Раз в час проверяет, изменились ли таблица или код, и пересобирает сайт только при изменениях.
+# Настройки (Settings → Secrets and variables → Actions):
+#   секреты:    YC_ACCESS_KEY_ID, YC_SECRET_ACCESS_KEY — статический ключ сервисного аккаунта
+#   переменные: YC_BUCKET — имя бакета; PRODUCTS_CSV_URL, SOLUTIONS_CSV_URL — опубликованные CSV листов
+name: Сборка и выкладка
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Каждый час в 17 минут: в начале часа очереди GitHub перегружены
+    - cron: '17 * * * *'
+  # Кнопка «Run workflow»: собрать и выложить сразу, даже без изменений
+  workflow_dispatch:
+
+# Две выкладки одновременно не идут: следующая ждёт окончания предыдущей
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VITE_DATA_SOURCE: sheets
+      VITE_PRODUCTS_CSV_URL: ${{ vars.PRODUCTS_CSV_URL }}
+      VITE_SOLUTIONS_CSV_URL: ${{ vars.SOLUTIONS_CSV_URL }}
+      BUCKET: ${{ vars.YC_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.YC_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.YC_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ru-central1
+      AWS_ENDPOINT_URL: https://storage.yandexcloud.net
+      # Новые версии AWS CLI по умолчанию считают контрольные суммы, которые S3-совместимые хранилища не всегда принимают
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+
+    steps:
+      - name: Проверить настройки
+        run: |
+          for name in VITE_PRODUCTS_CSV_URL VITE_SOLUTIONS_CSV_URL BUCKET AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
+            if [ -z "${!name}" ]; then echo "::error::Не задана настройка $name (см. шапку deploy.yml)"; exit 1; fi
+          done
+
+      - name: Проверить, есть ли изменения
+        id: changes
+        run: |
+          # Отпечаток версии: коммит плюс содержимое обоих листов таблицы
+          hash=$( { echo "$GITHUB_SHA"; curl -sfL "$VITE_PRODUCTS_CSV_URL"; curl -sfL "$VITE_SOLUTIONS_CSV_URL"; } | sha256sum | cut -d' ' -f1)
+          deployed=$(aws s3 cp "s3://$BUCKET/deploy-hash.txt" - 2>/dev/null || true)
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+          if [ "$hash" = "$deployed" ] && [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then
+            echo "Изменений нет, сайт уже актуален"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.changes.outputs.changed == 'true'
+
+      - uses: actions/setup-node@v5
+        if: steps.changes.outputs.changed == 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Собрать сайт
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          npm ci
+          npm run lint
+          npm test
+          npm run build
+
+      - name: Выложить в Object Storage
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          # Файлы сборки с хешем в имени не меняются никогда: браузер хранит их год
+          aws s3 sync dist/assets "s3://$BUCKET/assets" --cache-control "public, max-age=31536000, immutable"
+          # Страницы и фото браузер перепроверяет при каждом открытии; удалённые товары убираются с хостинга
+          aws s3 sync dist "s3://$BUCKET" --delete --exclude "assets/*" --exclude "deploy-hash.txt" --cache-control "no-cache"
+          # Старые файлы сборки удаляем последними, когда новые страницы уже на месте
+          aws s3 sync dist/assets "s3://$BUCKET/assets" --delete --cache-control "public, max-age=31536000, immutable"
+          echo "${{ steps.changes.outputs.hash }}" | aws s3 cp - "s3://$BUCKET/deploy-hash.txt" --content-type text/plain

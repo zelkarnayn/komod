@@ -17,6 +17,9 @@ React Router, TanStack Query, CSS Modules. Архитектура Feature-Sliced
 Сейчас тестовые данные: entities/product/api/products.data.ts и
 entities/solution/api/solutions.data.ts. Источник данных будет таблица Google Sheets
 с листами «Товары» и «Комплекты» (формат столбцов в файле komod-catalog.xlsx).
+Таблица скачивается только при сборке (build/catalog-source.ts), страницы пререндерятся
+в HTML (build/prerender.ts, src/app/entry-server.tsx). Код страниц должен рисоваться без
+window/document вне эффектов. Хостинг — Yandex Object Storage, выкладка .github/workflows/deploy.yml.
 
 ## Проверки перед завершением задачи
 npm run typecheck, npm run lint, npm run build.

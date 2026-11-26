@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import type { RouteObject } from 'react-router-dom';
 import { CatalogPage } from '@/pages/catalog';
 import { HomePage } from '@/pages/home';
 import { NotFoundPage } from '@/pages/not-found';
@@ -7,7 +7,8 @@ import { SolutionPage } from '@/pages/solution';
 import { SolutionsPage } from '@/pages/solutions';
 import { RootLayout } from './layouts/RootLayout';
 
-export const router = createBrowserRouter([
+/** Маршруты сайта: общие для браузера и для пререндера при сборке. */
+export const routes: RouteObject[] = [
   {
     path: '/',
     element: <RootLayout />,
@@ -20,4 +21,4 @@ export const router = createBrowserRouter([
       { path: '*', element: <NotFoundPage /> },
     ],
   },
-]);
+];

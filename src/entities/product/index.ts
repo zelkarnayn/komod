@@ -1,4 +1,4 @@
-export { useProduct, useProducts } from './api/use-products';
+export { productsQuery, useProduct, useProducts } from './api/use-products';
 export { formatDimensions, getAvailabilityText } from './lib/format';
 export { AVAILABILITY_LABELS, ROOM_LABELS, STYLE_LABELS } from './model/labels';
 export { AVAILABILITIES, ROOMS, STYLES } from './model/types';

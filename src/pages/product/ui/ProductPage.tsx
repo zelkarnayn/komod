@@ -1,8 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useProduct } from '@/entities/product';
 import { ROUTES } from '@/shared/config';
-import { usePageTitle } from '@/shared/lib';
-import { Container } from '@/shared/ui';
+import { Container, PageMeta } from '@/shared/ui';
 import { ProductDetails } from '@/widgets/product-details';
 import { RelatedProducts } from '@/widgets/related-products';
 import styles from './product-page.module.css';
@@ -11,15 +10,20 @@ import styles from './product-page.module.css';
 export function ProductPage() {
   const { productId } = useParams();
   const { data: product, isPending } = useProduct(productId);
-  usePageTitle(product?.name ?? (isPending ? undefined : 'Товар не найден'));
 
   if (isPending) {
-    return <Container className={styles.state}>Загружаем товар…</Container>;
+    return (
+      <Container className={styles.state}>
+        <PageMeta />
+        Загружаем товар…
+      </Container>
+    );
   }
 
   if (!product) {
     return (
       <Container className={styles.state}>
+        <PageMeta title="Товар не найден" />
         <h1>Такого товара нет</h1>
         <p>
           Возможно, он уже продан или ссылка устарела. <Link to={ROUTES.catalog}>Вернуться в каталог</Link>
@@ -31,6 +35,7 @@ export function ProductPage() {
   return (
     <>
       <Container className={styles.top}>
+        <PageMeta title={product.name} description={product.description} />
         <Link to={ROUTES.catalog} className={styles.back}>
           Все товары
         </Link>

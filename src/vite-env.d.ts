@@ -3,12 +3,14 @@
 interface ImportMetaEnv {
   /** mock — тестовые данные из кода, sheets — Google Sheets; по умолчанию mock */
   readonly VITE_DATA_SOURCE?: string;
-  /** Опубликованный CSV листа «Товары» */
-  readonly VITE_PRODUCTS_CSV_URL?: string;
-  /** Опубликованный CSV листа «Комплекты» */
-  readonly VITE_SOLUTIONS_CSV_URL?: string;
 }
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
+}
+
+/** CSV листов таблицы, скачанные при сборке (build/catalog-source.ts); в режиме mock — пустые строки. */
+declare module 'virtual:komod-catalog' {
+  export const productsCsv: string;
+  export const solutionsCsv: string;
 }
