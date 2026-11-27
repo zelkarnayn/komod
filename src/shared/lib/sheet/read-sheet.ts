@@ -38,12 +38,15 @@ export interface RowReader<C extends string> {
   code<K>(column: C, dictionary: ReadonlyMap<string, K>): K;
 }
 
-export interface SheetSchema<C extends string, T> {
+export interface SheetSchema<C extends string, T, O extends string = never> {
   /** Название листа для сообщений об ошибках */
   sheet: string;
   /** Столбцы, которые читаем; ищутся по заголовку, порядок в таблице не важен */
   columns: readonly C[];
-  parseRow: (row: RowReader<C>) => T;
+  /** Необязательные столбцы: если столбца нет на листе, его ячейки считаются пустыми */
+  optionalColumns?: readonly O[];
+  /** Собирает запись из строки; null — строку пропустить молча (например, товар скрыт с сайта) */
+  parseRow: (row: RowReader<C | O>) => T | null;
   /** Уникальный ключ записи: строки с повторным ключом пропускаются */
   keyOf: (item: T) => string;
 }
@@ -76,15 +79,18 @@ export function splitList(value: string): string[] {
  * @param schema - какие столбцы читать и как собрать запись
  * @throws {Error} если на листе нет нужного столбца: это ошибка структуры, а не одной строки
  */
-export function readSheet<C extends string, T>(rows: readonly (readonly string[])[], schema: SheetSchema<C, T>): SheetResult<T> {
+export function readSheet<C extends string, T, O extends string = never>(
+  rows: readonly (readonly string[])[],
+  schema: SheetSchema<C, T, O>,
+): SheetResult<T> {
   const [header = [], ...body] = rows;
   const headerKeys = header.map(headerKey);
-  const indexes = new Map<C, number>();
+  const indexes = new Map<C | O, number>();
   const missing: C[] = [];
-  for (const column of schema.columns) {
+  for (const column of [...schema.columns, ...(schema.optionalColumns ?? [])]) {
     const index = headerKeys.indexOf(headerKey(column));
-    if (index === -1) missing.push(column);
-    else indexes.set(column, index);
+    if (index !== -1) indexes.set(column, index);
+    else if ((schema.columns as readonly string[]).includes(column)) missing.push(column as C);
   }
   if (missing.length > 0) {
     throw new Error(`Лист «${schema.sheet}»: не найдены столбцы ${missing.map((column) => `«${column}»`).join(', ')}`);
@@ -96,11 +102,12 @@ export function readSheet<C extends string, T>(rows: readonly (readonly string[]
 
   body.forEach((cells, index) => {
     const rowNumber = index + 2;
-    const cell = (column: C): string => (cells[indexes.get(column) ?? -1] ?? '').trim();
+    const cell = (column: C | O): string => (cells[indexes.get(column) ?? -1] ?? '').trim();
     if (schema.columns.every((column) => cell(column) === '')) return;
 
     try {
       const item = schema.parseRow(createRowReader(cell));
+      if (item === null) return;
       const key = schema.keyOf(item);
       const firstRow = seenKeys.get(key);
       if (firstRow !== undefined) throw new CellError(`артикул ${key} уже есть в строке ${firstRow}`);

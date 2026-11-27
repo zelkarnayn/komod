@@ -1,4 +1,5 @@
 import { ROOM_LABELS, STYLE_LABELS } from '@/entities/product/@x/solution';
+import { SHEET_COLUMNS } from '@/shared/config';
 import { invertLabels, readSheet, resolveImageSrc, splitList } from '@/shared/lib';
 import type { SheetResult } from '@/shared/lib';
 import type { Solution } from '../model/types';
@@ -6,11 +7,7 @@ import type { Solution } from '../model/types';
 const ROOM_CODES = invertLabels(ROOM_LABELS);
 const STYLE_CODES = invertLabels(STYLE_LABELS);
 
-/**
- * Столбцы листа «Комплекты», которые попадают на сайт. «Сумма товаров» не читается:
- * сайт считает её сам по ценам каталога (см. resolveSolution).
- */
-const COLUMNS = ['Артикул комплекта', 'Название', 'Комната', 'Стиль', 'Описание', 'Состав', 'Цена комплекта', 'Фото обложки'] as const;
+const { sheet: SHEET, required: COLUMNS } = SHEET_COLUMNS.solutions;
 
 /**
  * Превращает лист «Комплекты» в готовые решения. Строки с ошибками пропускаются
@@ -19,7 +16,7 @@ const COLUMNS = ['Артикул комплекта', 'Название', 'Ко�
  */
 export function parseSolutionsSheet(rows: readonly (readonly string[])[]): SheetResult<Solution> {
   return readSheet(rows, {
-    sheet: 'Комплекты',
+    sheet: SHEET,
     columns: COLUMNS,
     keyOf: (solution) => solution.id,
     parseRow: (row) => {

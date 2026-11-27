@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --linen: #f7f2ea;
+        --linen-deep: #efe7d8;
+        --ink: #2b2620;
+        --ink-soft: #5c554a;
+        --sage: #5f6b4f;
+        --sage-deep: #454e3a;
+        --clay: #b5643f;
+        --line: #dcd2be;
+        --white: #fffdf9;
+        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        color: var(--ink);
+        -webkit-text-size-adjust: 100%;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--linen); font-size: 16px; line-height: 1.4; }
+      button, input, select, textarea { font: inherit; color: inherit; }
+      button { cursor: pointer; }
+      [hidden] { display: none !important; }
+
+      .page { max-width: 720px; margin: 0 auto; padding: 16px 16px 112px; }
+      .top { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+      .top h1 { margin: 0; font-size: 24px; flex: 1; }
+      .back { border: 0; background: none; font-size: 16px; padding: 8px 0; color: var(--sage-deep); }
+
+      .search { width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); }
+      .chips { display: flex; gap: 8px; margin: 12px 0 16px; overflow-x: auto; }
+      .chip { border: 1px solid var(--line); background: var(--white); border-radius: 999px; padding: 8px 14px; white-space: nowrap; }
+      .chip[aria-pressed='true'] { background: var(--sage); border-color: var(--sage); color: var(--white); }
+
+      .list { display: grid; gap: 10px; }
+      .item { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--white); }
+      .thumb { width: 64px; height: 64px; flex: none; border-radius: 10px; background: var(--linen-deep); object-fit: cover; display: grid; place-items: center; color: var(--ink-soft); font-size: 12px; overflow: hidden; }
+      .thumb img { width: 100%; height: 100%; object-fit: cover; }
+      .item-body { min-width: 0; flex: 1; }
+      .item-name { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .item-meta { display: block; color: var(--ink-soft); font-size: 14px; margin-bottom: 4px; }
+      .badge { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--linen-deep); margin-right: 4px; }
+      .badge.warn { background: #f4dfd3; color: #7a3a1d; }
+
+      .card { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+      .card h2 { margin: 0 0 12px; font-size: 18px; }
+      .hint { color: var(--ink-soft); font-size: 14px; margin: 0 0 12px; }
+      label.field { display: block; margin-bottom: 12px; }
+      .field > span { display: block; font-size: 14px; color: var(--ink-soft); margin-bottom: 4px; }
+      .field input, .field select, .field textarea { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); }
+      .field textarea { min-height: 110px; resize: vertical; }
+      .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .switch { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+      .switch input { width: 22px; height: 22px; accent-color: var(--sage); }
+
+      .photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+      .photo { position: relative; border-radius: 12px; overflow: hidden; background: var(--linen-deep); aspect-ratio: 1; }
+      .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .photo .main { position: absolute; left: 6px; top: 6px; background: var(--sage); color: var(--white); font-size: 12px; padding: 2px 8px; border-radius: 999px; }
+      .photo .tools { position: absolute; inset: auto 0 0 0; display: flex; justify-content: space-between; padding: 6px; background: linear-gradient(transparent, rgb(0 0 0 / 0.45)); }
+      .photo .tools button { border: 0; width: 38px; height: 38px; border-radius: 50%; background: rgb(255 253 249 / 0.92); font-size: 18px; }
+      .photo .tools button:disabled { opacity: 0.35; }
+      .add-photo { display: grid; place-items: center; text-align: center; aspect-ratio: 1; border: 2px dashed var(--line); border-radius: 12px; color: var(--sage-deep); font-weight: 600; padding: 8px; cursor: pointer; }
+      .add-photo input { display: none; }
+
+      .related { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+      .related .chip { display: inline-flex; gap: 6px; align-items: center; }
+      .related .chip button { border: 0; background: none; padding: 0 2px; font-size: 18px; line-height: 1; }
+      .options { border: 1px solid var(--line); border-radius: 10px; max-height: 240px; overflow: auto; margin-top: 4px; background: var(--white); }
+      .options button { display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--linen-deep); background: none; padding: 10px 12px; }
+
+      .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: rgb(247 242 234 / 0.96); border-top: 1px solid var(--line); }
+      .bar-inner { max-width: 720px; margin: 0 auto; display: flex; gap: 10px; }
+      .btn { flex: 1; border: 0; border-radius: 12px; padding: 14px; font-weight: 600; background: var(--sage); color: var(--white); }
+      .btn.secondary { background: var(--white); color: var(--ink); border: 1px solid var(--line); }
+      .btn:disabled { opacity: 0.5; }
+
+      .toast { position: fixed; left: 16px; right: 16px; bottom: 96px; margin: 0 auto; max-width: 560px; padding: 14px 16px; border-radius: 12px; background: var(--ink); color: var(--white); white-space: pre-line; box-shadow: 0 8px 24px rgb(0 0 0 / 0.2); z-index: 10; }
+      .toast.error { background: #7a2e1d; }
+      .loading { text-align: center; color: var(--ink-soft); padding: 48px 0; }
+      .empty { text-align: center; color: var(--ink-soft); padding: 24px 0; }
+    </style>
+  </head>
+  <body>
+    <div class="page" id="app"><p class="loading">Загружаю товары…</p></div>
+    <div class="bar" id="bar" hidden><div class="bar-inner" id="bar-inner"></div></div>
+    <div class="toast" id="toast" hidden></div>
+
+    <script>
+      /** Наибольшая сторона фото после сжатия на телефоне; сайт всё равно пережмёт его при сборке */
+      const MAX_PHOTO_SIDE = 2000;
+      const FILTERS = { all: 'Все', noPhoto: 'Без фото', hidden: 'Скрытые' };
+
+      const state = { products: [], dictionaries: {}, filter: 'all', query: '', editing: null, savedForm: '', busy: false };
+      const thumbs = new Map();
+      const app = document.getElementById('app');
+
+      /**
+       * Вызывает функцию сервера (Code.js) и возвращает Promise.
+       * @param {string} name - имя функции
+       * @param {...*} args - аргументы
+       */
+      function run(name, ...args) {
+        return new Promise((resolve, reject) => {
+          google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[name](...args);
+        });
+      }
+
+      /** Экранирует текст для вставки в HTML. */
+      function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+      }
+
+      let toastTimer;
+      /** Показывает сообщение внизу экрана. */
+      function toast(message, isError = false) {
+        const element = document.getElementById('toast');
+        element.textContent = message;
+        element.className = isError ? 'toast error' : 'toast';
+        element.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => (element.hidden = true), isError ? 8000 : 3500);
+      }
+
+      /** Текст ошибки сервера без служебного префикса. */
+      function errorText(error) {
+        return String(error && error.message ? error.message : error).replace(/^Error:\s*/, '');
+      }
+
+      /** Нижняя панель с кнопками. */
+      function setBar(html) {
+        document.getElementById('bar').hidden = !html;
+        document.getElementById('bar-inner').innerHTML = html || '';
+      }
+
+      // ─── Миниатюры ─────────────────────────────────────────────
+
+      let thumbQueue = [];
+      let thumbTimer;
+      /** Подставляет миниатюры во все картинки с data-thumb, догружая недостающие пачками. */
+      function loadThumbs() {
+        document.querySelectorAll('img[data-thumb]').forEach((img) => {
+          const id = img.dataset.thumb;
+          if (thumbs.get(id)) img.src = thumbs.get(id);
+          else if (!thumbs.has(id)) {
+            thumbs.set(id, undefined);
+            thumbQueue.push(id);
+          }
+        });
+        clearTimeout(thumbTimer);
+        thumbTimer = setTimeout(async () => {
+          while (thumbQueue.length) {
+            const batch = thumbQueue.splice(0, 12);
+            try {
+              const result = await run('getThumbnails', batch);
+              Object.keys(result).forEach((id) => thumbs.set(id, result[id]));
+            } catch (error) {
+              batch.forEach((id) => thumbs.delete(id));
+              return;
+            }
+            document.querySelectorAll('img[data-thumb]').forEach((img) => {
+              if (thumbs.get(img.dataset.thumb)) img.src = thumbs.get(img.dataset.thumb);
+            });
+          }
+        }, 50);
+      }
+
+      // ─── Список ────────────────────────────────────────────────
+
+      /** Экран со списком товаров. */
+      function renderList() {
+        state.editing = null;
+        const query = state.query.trim().toLowerCase();
+        const visible = state.products.filter((product) => {
+          if (state.filter === 'noPhoto' && product.photos.length) return false;
+          if (state.filter === 'hidden' && product.onSite) return false;
+          return !query || `${product.id} ${product.name} ${product.kind}`.toLowerCase().includes(query);
+        });
+
+        app.innerHTML = `
+          <div class="top"><h1>Товары</h1></div>
+          <input class="search" id="search" type="search" placeholder="Поиск по названию или артикулу" value="${esc(state.query)}" />
+          <div class="chips">${Object.keys(FILTERS)
+            .map((key) => `<button class="chip" data-filter="${key}" aria-pressed="${state.filter === key}">${FILTERS[key]}</button>`)
+            .join('')}</div>
+          <div class="list">${
+            visible.length
+              ? visible
+                  .map((product) => {
+                    const photo = product.photos[0];
+                    const badges = [
+                      product.onSite ? '' : '<span class="badge warn">Скрыт</span>',
+                      photo ? `<span class="badge">Фото: ${product.photos.length}</span>` : '<span class="badge warn">Нет фото</span>',
+                    ].join('');
+                    return `<button class="item" data-open="${esc(product.id)}">
+                      <span class="thumb">${photo ? `<img data-thumb="${esc(photo.id)}" alt="" />` : 'нет фото'}</span>
+                      <span class="item-body">
+                        <span class="item-name">${esc(product.name)}</span>
+                        <span class="item-meta">${esc(product.id)} · ${product.price ? `${Number(product.price).toLocaleString('ru-RU')} ₽` : 'цена по запросу'}</span>
+                        ${badges}
+                      </span>
+                    </button>`;
+                  })
+                  .join('')
+              : '<p class="empty">Ничего не найдено</p>'
+          }</div>`;
+        setBar('<button class="btn" data-new>+ Добавить товар</button>');
+        loadThumbs();
+      }
+
+      // ─── Карточка товара ───────────────────────────────────────
+
+      /** Пустой товар для формы добавления. */
+      function blankProduct() {
+        return { id: '', name: '', room: '', kind: '', style: '', color: '', material: '', width: '', depth: '', height: '', price: '', availability: '', leadTimeDays: '', supplier: '', supplierSku: '', related: [], description: '', onSite: true, photos: [] };
+      }
+
+      /** Выпадающий список из справочника; значение не из справочника тоже остаётся. */
+      function select(name, label, value, required) {
+        const list = state.dictionaries[name] || [];
+        const options = value && !list.includes(value) ? [value, ...list] : list;
+        return `<label class="field"><span>${label}${required ? ' *' : ''}</span>
+          <select name="${name}">
+            <option value="">— выберите —</option>
+            ${options.map((option) => `<option${option === value ? ' selected' : ''}>${esc(option)}</option>`).join('')}
+          </select></label>`;
+      }
+
+      /** Текстовое или числовое поле. */
+      function input(name, label, value, { numeric = false, required = false, placeholder = '' } = {}) {
+        return `<label class="field"><span>${label}${required ? ' *' : ''}</span>
+          <input name="${name}" value="${esc(value)}" ${numeric ? 'inputmode="decimal"' : ''} placeholder="${esc(placeholder)}" /></label>`;
+      }
+
+      /** Экран карточки товара: новый или существующий. */
+      function renderEditor(product) {
+        state.editing = { ...product, related: [...product.related], photos: [...product.photos] };
+        const isNew = !product.id;
+        app.innerHTML = `
+          <div class="top"><button class="back" data-back>← Все товары</button></div>
+          <h1 style="margin:0 0 4px">${isNew ? 'Новый товар' : esc(product.name)}</h1>
+          <p class="hint">${isNew ? 'Артикул назначится сам при сохранении' : `Артикул ${esc(product.id)}`}</p>
+
+          <section class="card" id="photos-card"></section>
+
+          <form id="form" autocomplete="off">
+            <section class="card">
+              <h2>Основное</h2>
+              ${input('name', 'Название', product.name, { required: true, placeholder: 'Например: Диван 3-местный, оливковый' })}
+              ${select('room', 'Комната', product.room, true)}
+              ${select('kind', 'Тип товара', product.kind, false)}
+              ${select('style', 'Стиль', product.style, true)}
+              ${input('color', 'Цвет', product.color)}
+              ${input('material', 'Материал', product.material)}
+              <label class="field"><span>Описание</span><textarea name="description">${esc(product.description)}</textarea></label>
+            </section>
+
+            <section class="card">
+              <h2>Цена и наличие</h2>
+              ${input('price', 'Цена, ₽', product.price, { numeric: true, placeholder: 'Пусто — «Цена по запросу»' })}
+              ${select('availability', 'Наличие', product.availability, true)}
+              <div id="lead-time">${input('leadTimeDays', 'Срок поставки, дней', product.leadTimeDays, { numeric: true })}</div>
+            </section>
+
+            <section class="card">
+              <h2>Размеры, см</h2>
+              <p class="hint">Все три или ни одного</p>
+              <div class="row3">
+                ${input('width', 'Ширина', product.width, { numeric: true })}
+                ${input('depth', 'Глубина', product.depth, { numeric: true })}
+                ${input('height', 'Высота', product.height, { numeric: true })}
+              </div>
+            </section>
+
+            <section class="card">
+              <h2>Сочетается с</h2>
+              <div class="related" id="related"></div>
+              <input class="search" id="related-search" type="search" placeholder="Найти товар, чтобы добавить" />
+              <div class="options" id="related-options" hidden></div>
+            </section>
+
+            <section class="card">
+              <h2>Внутреннее</h2>
+              <p class="hint">На сайте не показывается</p>
+              ${input('supplierSku', 'Артикул поставщика', product.supplierSku)}
+              ${input('supplier', 'Поставщик', product.supplier)}
+            </section>
+
+            <section class="card">
+              <label class="switch"><input type="checkbox" name="onSite" ${product.onSite ? 'checked' : ''} /> Показывать на сайте</label>
+            </section>
+          </form>`;
+        setBar(`<button class="btn" data-save>${isNew ? 'Сохранить товар' : 'Сохранить'}</button>`);
+        renderPhotos();
+        renderRelated();
+        toggleLeadTime();
+        state.savedForm = JSON.stringify(readForm());
+        window.scrollTo(0, 0);
+      }
+
+      /** Срок поставки нужен только для «Под заказ». */
+      function toggleLeadTime() {
+        const form = document.getElementById('form');
+        const block = document.getElementById('lead-time');
+        if (!form || !block) return;
+        block.hidden = !/заказ/i.test(form.elements.availability.value) && !form.elements.leadTimeDays.value;
+      }
+
+      /** Поля формы в виде объекта для сервера. */
+      function readForm() {
+        const form = document.getElementById('form');
+        const data = { id: state.editing.id, related: state.editing.related };
+        ['name', 'room', 'kind', 'style', 'color', 'material', 'description', 'price', 'availability', 'leadTimeDays', 'width', 'depth', 'height', 'supplierSku', 'supplier'].forEach((name) => {
+          data[name] = form.elements[name].value;
+        });
+        data.onSite = form.elements.onSite.checked;
+        return data;
+      }
+
+      /** Блок «Сочетается с»: выбранные товары. */
+      function renderRelated() {
+        const byId = new Map(state.products.map((product) => [product.id, product]));
+        document.getElementById('related').innerHTML =
+          state.editing.related
+            .map((id) => `<span class="chip">${esc(byId.get(id) ? byId.get(id).name : id)} <button type="button" data-unrelate="${esc(id)}" aria-label="Убрать">×</button></span>`)
+            .join('') || '<span class="hint">Пока ничего</span>';
+      }
+
+      /** Подсказки при поиске товара для «Сочетается с». */
+      function renderRelatedOptions(query) {
+        const box = document.getElementById('related-options');
+        const text = query.trim().toLowerCase();
+        const options = text
+          ? state.products
+              .filter((product) => product.id !== state.editing.id && !state.editing.related.includes(product.id))
+              .filter((product) => `${product.id} ${product.name}`.toLowerCase().includes(text))
+              .slice(0, 20)
+          : [];
+        box.hidden = !options.length;
+        box.innerHTML = options.map((product) => `<button type="button" data-relate="${esc(product.id)}">${esc(product.name)} <span class="hint">${esc(product.id)}</span></button>`).join('');
+      }
+
+      /** Блок фото товара. */
+      function renderPhotos(progress) {
+        const card = document.getElementById('photos-card');
+        const { id, photos } = state.editing;
+        if (!id) {
+          card.innerHTML = '<h2>Фото</h2><p class="hint">Фото можно будет добавить сразу после сохранения товара.</p>';
+          return;
+        }
+        card.innerHTML = `
+          <h2>Фото</h2>
+          <p class="hint">${progress || 'Первое фото — главное, оно показывается в каталоге.'}</p>
+          <div class="photos">
+            ${photos
+              .map(
+                (photo, index) => `<div class="photo">
+                  <img data-thumb="${esc(photo.id)}" alt="Фото ${index + 1}" />
+                  ${index === 0 ? '<span class="main">Главное</span>' : ''}
+                  <div class="tools">
+                    <button type="button" data-move="${index}" data-to="${index - 1}" ${index === 0 || state.busy ? 'disabled' : ''} aria-label="Левее">←</button>
+                    <button type="button" data-move="${index}" data-to="0" ${index === 0 || state.busy ? 'disabled' : ''} aria-label="Сделать главным">★</button>
+                    <button type="button" data-trash="${esc(photo.id)}" ${state.busy ? 'disabled' : ''} aria-label="Удалить">🗑</button>
+                    <button type="button" data-move="${index}" data-to="${index + 1}" ${index === photos.length - 1 || state.busy ? 'disabled' : ''} aria-label="Правее">→</button>
+                  </div>
+                </div>`,
+              )
+              .join('')}
+            <label class="add-photo" ${state.busy ? 'hidden' : ''}>+ Добавить фото<input id="photo-input" type="file" accept="image/*" multiple /></label>
+          </div>`;
+        loadThumbs();
+      }
+
+      /**
+       * Сжимает фото на телефоне до MAX_PHOTO_SIDE по большей стороне (JPEG):
+       * загрузка в 5–10 раз быстрее, а качество для сайта то же.
+       * @param {File} file - выбранный файл
+       * @return {Promise<string>} data:image/jpeg;base64,…
+       */
+      function compressPhoto(file) {
+        return new Promise((resolve, reject) => {
+          const url = URL.createObjectURL(file);
+          const image = new Image();
+          image.onload = () => {
+            const scale = Math.min(1, MAX_PHOTO_SIDE / Math.max(image.naturalWidth, image.naturalHeight));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(image.naturalWidth * scale);
+            canvas.height = Math.round(image.naturalHeight * scale);
+            canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(url);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+          };
+          image.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error(`Не получилось открыть «${file.name}». Сфотографируйте заново или выберите другой файл.`));
+          };
+          image.src = url;
+        });
+      }
+
+      /** Загружает выбранные фото по одному. */
+      async function uploadPhotos(files) {
+        const { id } = state.editing;
+        state.busy = true;
+        try {
+          for (let index = 0; index < files.length; index += 1) {
+            renderPhotos(`Загружаю ${index + 1} из ${files.length}…`);
+            const dataUrl = await compressPhoto(files[index]);
+            const photos = await run('uploadPhoto', id, dataUrl);
+            // Миниатюру Диск делает не сразу: показываем то, что загрузили
+            const added = photos.find((photo) => !state.editing.photos.some((old) => old.id === photo.id));
+            if (added) thumbs.set(added.id, dataUrl);
+            updatePhotos(id, photos);
+          }
+          toast(files.length > 1 ? 'Фото загружены' : 'Фото загружено');
+        } catch (error) {
+          toast(errorText(error), true);
+        } finally {
+          state.busy = false;
+          if (state.editing && state.editing.id === id) renderPhotos();
+        }
+      }
+
+      /** Запоминает новый список фото у товара и в карточке. */
+      function updatePhotos(id, photos) {
+        const product = state.products.find((item) => item.id === id);
+        if (product) product.photos = photos;
+        if (state.editing && state.editing.id === id) state.editing.photos = photos;
+      }
+
+      /** Выполняет действие с фото и перерисовывает блок. */
+      async function photoAction(name, ...args) {
+        const { id } = state.editing;
+        state.busy = true;
+        renderPhotos('Сохраняю…');
+        try {
+          updatePhotos(id, await run(name, id, ...args));
+        } catch (error) {
+          toast(errorText(error), true);
+        } finally {
+          state.busy = false;
+          if (state.editing && state.editing.id === id) renderPhotos();
+        }
+      }
+
+      /** Сохраняет карточку. */
+      async function save(button) {
+        button.disabled = true;
+        button.textContent = 'Сохраняю…';
+        try {
+          const isNew = !state.editing.id;
+          const saved = await run('saveProduct', readForm());
+          const index = state.products.findIndex((item) => item.id === saved.id);
+          if (index === -1) state.products.push(saved);
+          else state.products[index] = saved;
+          renderEditor(saved);
+          toast(isNew ? `Товар ${saved.id} сохранён. Теперь добавьте фото.` : 'Сохранено. На сайте изменения появятся в течение часа.');
+        } catch (error) {
+          toast(errorText(error), true);
+          button.disabled = false;
+          button.textContent = 'Сохранить';
+        }
+      }
+
+      /** Есть ли несохранённые правки в форме. */
+      function isDirty() {
+        return state.editing && document.getElementById('form') && JSON.stringify(readForm()) !== state.savedForm;
+      }
+
+      // ─── События ───────────────────────────────────────────────
+
+      document.addEventListener('click', (event) => {
+        const target = event.target.closest('button');
+        if (!target) return;
+        const { dataset } = target;
+        if ('filter' in dataset) {
+          state.filter = dataset.filter;
+          renderList();
+        } else if ('open' in dataset) {
+          renderEditor(state.products.find((product) => product.id === dataset.open));
+        } else if ('new' in dataset) {
+          renderEditor(blankProduct());
+        } else if ('back' in dataset) {
+          if (!isDirty() || confirm('Изменения не сохранены. Выйти без сохранения?')) renderList();
+        } else if ('save' in dataset) {
+          save(target);
+        } else if ('relate' in dataset) {
+          state.editing.related.push(dataset.relate);
+          document.getElementById('related-search').value = '';
+          renderRelatedOptions('');
+          renderRelated();
+        } else if ('unrelate' in dataset) {
+          state.editing.related = state.editing.related.filter((id) => id !== dataset.unrelate);
+          renderRelated();
+        } else if ('move' in dataset) {
+          const order = state.editing.photos.map((photo) => photo.id);
+          const [moved] = order.splice(Number(dataset.move), 1);
+          order.splice(Number(dataset.to), 0, moved);
+          photoAction('setPhotoOrder', order);
+        } else if ('trash' in dataset) {
+          if (confirm('Удалить это фото? Его можно будет вернуть из корзины Google Диска в течение 30 дней.')) photoAction('trashPhoto', dataset.trash);
+        }
+      });
+
+      document.addEventListener('input', (event) => {
+        if (event.target.id === 'search') {
+          state.query = event.target.value;
+          const position = event.target.selectionStart;
+          renderList();
+          const search = document.getElementById('search');
+          search.focus();
+          search.setSelectionRange(position, position);
+        } else if (event.target.id === 'related-search') {
+          renderRelatedOptions(event.target.value);
+        }
+      });
+
+      document.addEventListener('change', (event) => {
+        if (event.target.id === 'photo-input' && event.target.files.length) uploadPhotos([...event.target.files]);
+        if (event.target.name === 'availability') toggleLeadTime();
+      });
+
+      // Enter в поле формы не должен отправлять её «по-браузерному»
+      document.addEventListener('submit', (event) => event.preventDefault());
+
+      window.addEventListener('beforeunload', (event) => {
+        if (isDirty() || state.busy) event.preventDefault();
+      });
+
+      run('getCatalog')
+        .then((catalog) => {
+          state.products = catalog.products;
+          state.dictionaries = catalog.dictionaries;
+          renderList();
+        })
+        .catch((error) => {
+          app.innerHTML = `<p class="loading">Не получилось открыть каталог:<br />${esc(errorText(error))}</p>`;
+        });
+    </script>
+  </body>
+</html>

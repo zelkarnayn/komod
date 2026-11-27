@@ -2,7 +2,7 @@ import { ProductGrid, ROOM_LABELS, STYLE_LABELS, useProducts } from '@/entities/
 import { resolveSolution } from '@/entities/solution';
 import type { Solution } from '@/entities/solution';
 import { AskAboutSolutionButton } from '@/features/ask-in-whatsapp';
-import { formatPrice } from '@/shared/lib';
+import { formatPrice, photoSources } from '@/shared/lib';
 import styles from './solution-details.module.css';
 
 interface SolutionDetailsProps {
@@ -17,7 +17,7 @@ export function SolutionDetails({ solution }: SolutionDetailsProps) {
   return (
     <div>
       <div className={styles.head}>
-        <div className={styles.cover}>{cover ? <img className={styles.coverImage} src={cover} alt={solution.name} /> : null}</div>
+        <div className={styles.cover}>{cover ? <img className={styles.coverImage} {...photoSources(cover, '(max-width: 900px) 100vw, 1100px')} alt={solution.name} /> : null}</div>
         <div>
           <p className={styles.meta}>
             {ROOM_LABELS[solution.room]}, {STYLE_LABELS[solution.style]}

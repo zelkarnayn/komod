@@ -95,4 +95,26 @@ describe('parseProductsSheet', () => {
     expect(items).toHaveLength(1);
     expect(issues).toEqual([]);
   });
+
+  it('фото с Диска важнее «Ссылки на фото»', () => {
+    const photos = { 'KM-001': ['/photos/KM-001/a-1600.webp', '/photos/KM-001/b-1600.webp'] };
+    const { items } = parseProductsSheet(parseCsv([HEADER, VALID].join('\n')), photos);
+    expect(items[0]?.images).toEqual(photos['KM-001']);
+  });
+
+  it('товар со значением «Нет» в столбце «На сайте» пропускает молча', () => {
+    const header = `${HEADER},На сайте`;
+    const rows = parseCsv([header, `${VALID},нет`, VALID.replace('KM-001', 'KM-005') + ',Да'].join('\n'));
+    const { items, issues } = parseProductsSheet(rows);
+    expect(items.map((item) => item.id)).toEqual(['KM-005']);
+    expect(issues).toEqual([]);
+  });
+
+  it('работает без необязательного столбца «Ссылка на фото»', () => {
+    const header = HEADER.replace(',"Ссылка на фото"', '');
+    const line = VALID.replace(',KM-001_main.jpg', '');
+    const { items, issues } = parseProductsSheet(parseCsv([header, line].join('\n')));
+    expect(issues).toEqual([]);
+    expect(items[0]?.images).toEqual([]);
+  });
 });

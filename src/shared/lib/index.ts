@@ -5,3 +5,5 @@ export type { GeoPoint } from './maps';
 export { pluralizeRu } from './pluralize-ru';
 export { buildWhatsAppLink } from './whatsapp';
 export * from './sheet';
+export { photoSources } from './photo-sources';
+export type { PhotoSources } from './photo-sources';

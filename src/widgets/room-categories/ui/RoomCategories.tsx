@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ROOMS, ROOM_LABELS, useProducts } from '@/entities/product';
 import { ROUTES } from '@/shared/config';
-import { pluralizeRu } from '@/shared/lib';
+import { photoSources, pluralizeRu } from '@/shared/lib';
 import { Section, SectionHeading } from '@/shared/ui';
 import styles from './room-categories.module.css';
 
@@ -18,7 +18,7 @@ export function RoomCategories() {
           const cover = inRoom[0]?.images[0];
           return (
             <Link key={room} to={`${ROUTES.catalog}?room=${room}`} className={styles.card}>
-              {cover ? <img className={styles.image} src={cover} alt="" loading="lazy" /> : null}
+              {cover ? <img className={styles.image} {...photoSources(cover, '(max-width: 700px) 50vw, 400px')} alt="" loading="lazy" /> : null}
               <div className={styles.shade} />
               <div className={styles.caption}>
                 <h3 className={styles.name}>{ROOM_LABELS[room]}</h3>

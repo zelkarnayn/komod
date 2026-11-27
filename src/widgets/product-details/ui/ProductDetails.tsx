@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ROOM_LABELS, STYLE_LABELS, formatDimensions, getAvailabilityText } from '@/entities/product';
 import type { Product } from '@/entities/product';
 import { AskAboutProductButton } from '@/features/ask-in-whatsapp';
-import { formatPrice } from '@/shared/lib';
+import { formatPrice, photoSources } from '@/shared/lib';
 import styles from './product-details.module.css';
 
 interface ProductDetailsProps {
@@ -28,7 +28,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     <div className={styles.layout}>
       <div className={styles.gallery}>
         <div className={styles.main}>
-          <img className={styles.mainImage} src={activeImage} alt={product.name} />
+          {activeImage ? <img className={styles.mainImage} {...photoSources(activeImage, '(max-width: 900px) 100vw, 640px')} alt={product.name} /> : null}
         </div>
         {product.images.length > 1 ? (
           <div className={styles.thumbs}>
@@ -41,7 +41,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 className={index === activeIndex ? `${styles.thumb} ${styles.thumbActive}` : styles.thumb}
                 onClick={() => setActiveIndex(index)}
               >
-                <img src={src} alt="" />
+                <img {...photoSources(src, '120px')} alt="" />
               </button>
             ))}
           </div>

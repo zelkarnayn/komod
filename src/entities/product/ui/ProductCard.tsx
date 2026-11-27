@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/shared/config';
-import { formatPrice } from '@/shared/lib';
+import { formatPrice, photoSources } from '@/shared/lib';
 import { getAvailabilityText } from '../lib/format';
 import { STYLE_LABELS } from '../model/labels';
 import type { Product } from '../model/types';
@@ -12,10 +12,11 @@ interface ProductCardProps {
 
 /** Карточка товара для сеток каталога. Ведёт на страницу товара. */
 export function ProductCard({ product }: ProductCardProps) {
+  const cover = product.images[0];
   return (
     <Link to={ROUTES.product(product.id)} className={styles.card}>
       <div className={styles.imageWrap}>
-        <img className={styles.image} src={product.images[0]} alt={product.name} loading="lazy" />
+        {cover ? <img className={styles.image} {...photoSources(cover, '(max-width: 700px) 50vw, 400px')} alt={product.name} loading="lazy" /> : null}
       </div>
       <div className={styles.body}>
         <h3 className={styles.name}>{product.name}</h3>

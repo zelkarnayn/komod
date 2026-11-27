@@ -9,8 +9,12 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-/** CSV листов таблицы, скачанные при сборке (build/catalog-source.ts); в режиме mock — пустые строки. */
+/** Таблица и фото, прочитанные при сборке (build/catalog-source.ts); в режиме mock — пустые. */
 declare module 'virtual:komod-catalog' {
-  export const productsCsv: string;
-  export const solutionsCsv: string;
+  /** Строки листа «Товары», первая — заголовки */
+  export const productsRows: string[][];
+  /** Строки листа «Комплекты», первая — заголовки */
+  export const solutionsRows: string[][];
+  /** Адреса фото с Google Диска по артикулу, первое — главное */
+  export const photos: Record<string, string[]>;
 }

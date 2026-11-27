@@ -1,8 +1,9 @@
 # Сборка сайта и выкладка в Yandex Object Storage.
-# Раз в час проверяет, изменились ли таблица или код, и пересобирает сайт только при изменениях.
+# Раз в час проверяет, изменились ли таблица, фото или код, и пересобирает сайт только при изменениях.
 # Настройки (Settings → Secrets and variables → Actions):
-#   секреты:    YC_ACCESS_KEY_ID, YC_SECRET_ACCESS_KEY — статический ключ сервисного аккаунта
-#   переменные: YC_BUCKET — имя бакета; PRODUCTS_CSV_URL, SOLUTIONS_CSV_URL — опубликованные CSV листов
+#   секреты:    YC_ACCESS_KEY_ID, YC_SECRET_ACCESS_KEY — статический ключ сервисного аккаунта Yandex Cloud;
+#               GOOGLE_SERVICE_ACCOUNT_KEY — JSON-ключ сервисного аккаунта Google (только чтение таблицы и фото)
+#   переменные: YC_BUCKET — имя бакета; GOOGLE_SHEET_ID — ID таблицы; GOOGLE_PHOTOS_FOLDER_ID — ID папки с фото
 name: Сборка и выкладка
 
 on:
@@ -25,8 +26,9 @@ jobs:
     timeout-minutes: 15
     env:
       VITE_DATA_SOURCE: sheets
-      VITE_PRODUCTS_CSV_URL: ${{ vars.PRODUCTS_CSV_URL }}
-      VITE_SOLUTIONS_CSV_URL: ${{ vars.SOLUTIONS_CSV_URL }}
+      GOOGLE_SHEET_ID: ${{ vars.GOOGLE_SHEET_ID }}
+      GOOGLE_PHOTOS_FOLDER_ID: ${{ vars.GOOGLE_PHOTOS_FOLDER_ID }}
+      GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
       BUCKET: ${{ vars.YC_BUCKET }}
       AWS_ACCESS_KEY_ID: ${{ secrets.YC_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.YC_SECRET_ACCESS_KEY }}
@@ -39,15 +41,22 @@ jobs:
     steps:
       - name: Проверить настройки
         run: |
-          for name in VITE_PRODUCTS_CSV_URL VITE_SOLUTIONS_CSV_URL BUCKET AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
+          for name in GOOGLE_SHEET_ID GOOGLE_PHOTOS_FOLDER_ID GOOGLE_SERVICE_ACCOUNT_KEY BUCKET AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
             if [ -z "${!name}" ]; then echo "::error::Не задана настройка $name (см. шапку deploy.yml)"; exit 1; fi
           done
+
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
 
       - name: Проверить, есть ли изменения
         id: changes
         run: |
-          # Отпечаток версии: коммит плюс содержимое обоих листов таблицы
-          hash=$( { echo "$GITHUB_SHA"; curl -sfL "$VITE_PRODUCTS_CSV_URL"; curl -sfL "$VITE_SOLUTIONS_CSV_URL"; } | sha256sum | cut -d' ' -f1)
+          # Отпечаток версии: коммит, время правки таблицы и список фото (без установки зависимостей)
+          hash=$(node build/catalog-version.ts)
           deployed=$(aws s3 cp "s3://$BUCKET/deploy-hash.txt" - 2>/dev/null || true)
           echo "hash=$hash" >> "$GITHUB_OUTPUT"
           if [ "$hash" = "$deployed" ] && [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then
@@ -57,14 +66,13 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v5
-        if: steps.changes.outputs.changed == 'true'
-
-      - uses: actions/setup-node@v5
+      # Готовые фото между сборками: скачиваются и пережимаются только новые
+      - uses: actions/cache@v4
         if: steps.changes.outputs.changed == 'true'
         with:
-          node-version: 22
-          cache: npm
+          path: .cache/photos
+          key: photos-${{ github.run_id }}
+          restore-keys: photos-
 
       - name: Собрать сайт
         if: steps.changes.outputs.changed == 'true'
@@ -77,10 +85,13 @@ jobs:
       - name: Выложить в Object Storage
         if: steps.changes.outputs.changed == 'true'
         run: |
-          # Файлы сборки с хешем в имени не меняются никогда: браузер хранит их год
-          aws s3 sync dist/assets "s3://$BUCKET/assets" --cache-control "public, max-age=31536000, immutable"
-          # Страницы и фото браузер перепроверяет при каждом открытии; удалённые товары убираются с хостинга
-          aws s3 sync dist "s3://$BUCKET" --delete --exclude "assets/*" --exclude "deploy-hash.txt" --cache-control "no-cache"
-          # Старые файлы сборки удаляем последними, когда новые страницы уже на месте
-          aws s3 sync dist/assets "s3://$BUCKET/assets" --delete --cache-control "public, max-age=31536000, immutable"
+          immutable="public, max-age=31536000, immutable"
+          # Файлы сборки и фото с хешем в имени не меняются никогда: браузер хранит их год
+          aws s3 sync dist/assets "s3://$BUCKET/assets" --cache-control "$immutable"
+          if [ -d dist/photos ]; then aws s3 sync dist/photos "s3://$BUCKET/photos" --cache-control "$immutable"; fi
+          # Страницы браузер перепроверяет при каждом открытии; удалённые товары убираются с хостинга
+          aws s3 sync dist "s3://$BUCKET" --delete --exclude "assets/*" --exclude "photos/*" --exclude "deploy-hash.txt" --cache-control "no-cache"
+          # Старые файлы сборки и фото удаляем последними, когда новые страницы уже на месте
+          aws s3 sync dist/assets "s3://$BUCKET/assets" --delete --cache-control "$immutable"
+          mkdir -p dist/photos && aws s3 sync dist/photos "s3://$BUCKET/photos" --delete --cache-control "$immutable"
           echo "${{ steps.changes.outputs.hash }}" | aws s3 cp - "s3://$BUCKET/deploy-hash.txt" --content-type text/plain

@@ -1,4 +1,4 @@
-import { parseCsv, warnSheetIssues } from '@/shared/lib';
+import { warnSheetIssues } from '@/shared/lib';
 import type { Solution } from '../model/types';
 import { parseSolutionsSheet } from './solutions.sheet';
 
@@ -12,8 +12,8 @@ export async function fetchSolutions(): Promise<readonly Solution[]> {
   // и ненужная ветка (тестовые данные или таблица) вырезается целиком
   if (import.meta.env.VITE_DATA_SOURCE !== 'sheets') return (await import('./solutions.data')).SOLUTIONS;
 
-  const { solutionsCsv } = await import('virtual:komod-catalog');
-  const { items, issues } = parseSolutionsSheet(parseCsv(solutionsCsv));
+  const { solutionsRows } = await import('virtual:komod-catalog');
+  const { items, issues } = parseSolutionsSheet(solutionsRows);
   warnSheetIssues(issues);
   return items;
 }

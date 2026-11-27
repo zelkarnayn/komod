@@ -4,7 +4,7 @@ import { resolveSolution, useSolutions } from '@/entities/solution';
 import type { Solution } from '@/entities/solution';
 import type { Product } from '@/entities/product';
 import { ROUTES } from '@/shared/config';
-import { formatPrice, pluralizeRu } from '@/shared/lib';
+import { formatPrice, photoSources, pluralizeRu } from '@/shared/lib';
 import styles from './solutions-list.module.css';
 
 interface SolutionCardProps {
@@ -18,7 +18,7 @@ function SolutionCard({ solution, products }: SolutionCardProps) {
 
   return (
     <Link to={ROUTES.solution(solution.id)} className={styles.card}>
-      <div className={styles.cover}>{cover ? <img className={styles.coverImage} src={cover} alt={solution.name} loading="lazy" /> : null}</div>
+      <div className={styles.cover}>{cover ? <img className={styles.coverImage} {...photoSources(cover, '(max-width: 700px) 100vw, 600px')} alt={solution.name} loading="lazy" /> : null}</div>
       <div className={styles.body}>
         <h3 className={styles.name}>{solution.name}</h3>
         <p className={styles.meta}>
