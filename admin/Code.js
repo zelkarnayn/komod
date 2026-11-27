@@ -13,8 +13,10 @@ const PRODUCTS_SHEET = 'Товары';
 const DICTIONARY_SHEET = 'Справочники';
 /** Начало артикула салона: KM-001, KM-002… */
 const ID_PREFIX = 'KM-';
-/** Свойство скрипта с ID корневой папки фото (Настройки проекта → Свойства скрипта) */
+/** Свойство скрипта с ID корневой папки фото (Настройки проекта → Свойства скрипта), если папку нужно сменить */
 const PHOTOS_FOLDER_PROPERTY = 'PHOTOS_FOLDER_ID';
+/** Папка «Комод-фото» на Диске салона; ID не секрет: без доступа к папке по нему ничего не открыть */
+const DEFAULT_PHOTOS_FOLDER_ID = '16lE0QQ7dhfYPy4zST3LuonUuf1gpvS1y';
 
 /**
  * Поля формы и столбцы листа. Столбец ищется по началу заголовка до запятой или скобки,
@@ -469,8 +471,7 @@ function validateProduct_(input, table, dictionaries) {
  * @return {GoogleAppsScript.Drive.Folder}
  */
 function photosRoot_() {
-  const id = PropertiesService.getScriptProperties().getProperty(PHOTOS_FOLDER_PROPERTY);
-  if (!id) throw new Error(`Не настроена папка с фото: задайте свойство скрипта ${PHOTOS_FOLDER_PROPERTY}`);
+  const id = PropertiesService.getScriptProperties().getProperty(PHOTOS_FOLDER_PROPERTY) || DEFAULT_PHOTOS_FOLDER_ID;
   try {
     return DriveApp.getFolderById(id);
   } catch (error) {
